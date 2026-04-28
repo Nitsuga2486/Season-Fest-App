@@ -7,8 +7,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CONFIGURACIÓN DE IMAGEN DESDE GITHUB ---
-fondo_url = "https://raw.githubusercontent.com/Nitsuga2486/Season-Fest-App/main/static/images/festival-celebration.png"
+# --- 2. CONFIGURACIÓN DE IMAGEN DESDE CDN ---
+fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.png"
 
 # --- 3. ESTILOS CSS ---
 st.markdown(f"""
