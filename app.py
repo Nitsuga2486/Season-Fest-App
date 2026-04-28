@@ -53,7 +53,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎸 FEST SEASON - SCOREBOARD")
+st.title("🎸 FEST SEASON - SCOREBOARD 🎸")
 
 # --- 4. LÓGICA DE CAPTURA ---
 colores = ["#00D1FF", "#FF3366", "#FFD700", "#00FF85", "#BF00FF"]
