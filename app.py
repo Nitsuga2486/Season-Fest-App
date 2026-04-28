@@ -19,6 +19,14 @@ st.markdown(f"""
         background-position: center;
         background-attachment: fixed;
     }}
+    .centered-title {{
+        text-align: center;
+        color: #00D1FF;
+        font-size: 48px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        text-shadow: 0 0 20px rgba(0, 209, 255, 0.6);
+    }}
     .main-container {{
         background-color: rgba(16, 12, 43, 0.9);
         border-radius: 20px;
@@ -43,7 +51,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎸 FEST SEASON - SCOREBOARD 🎸")
+st.markdown("<div class='centered-title'>🎸 FEST SEASON - SCOREBOARD 🎸</div>", unsafe_allow_html=True)
 
 # --- 4. SELECCIÓN DE JUGADORES ---
 col_players, _ = st.columns([1, 3])
