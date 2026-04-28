@@ -151,5 +151,12 @@ for i in range(5):
         </div>
         """, unsafe_allow_html=True)
 
-if st.button("🔄 REINICIAR TABLERO"):
-    st.rerun()
+# --- ESPACIADOR PARA EL BOTÓN ---
+# Añadimos tres saltos de línea para empujar el botón hacia abajo
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+# Centramos el botón usando columnas
+_, col_boton, _ = st.columns([2, 1, 2])
+with col_boton:
+    if st.button("🔄 REINICIAR TABLERO", use_container_width=True):
+        st.rerun()
