@@ -9,7 +9,7 @@ st.set_page_config(
 
 # --- 2. CONFIGURACIÓN DE IMAGEN DESDE GITHUB ---
 # Usando la ruta organizada que creaste
-fondo_url = "https://github.com/Nitsuga2486/Season-Fest-App/blob/main/static/images/festival-celebration.png"
+fondo_url = "https://raw.githubusercontent.com/Nitsuga2486/Season-Fest-App/main/static/images/festival-celebration.png"
 
 # --- 3. ESTILOS CSS (DISEÑO NEÓN Y TRANSPARENCIAS) ---
 st.markdown(f"""
