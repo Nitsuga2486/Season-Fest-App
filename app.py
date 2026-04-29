@@ -78,11 +78,11 @@ st.markdown(f"""
 st.markdown("<div class='centered-title'>🎸 FEST SEASON - SCOREBOARD 🎸</div>", unsafe_allow_html=True)
 
 # --- 6. SELECCIÓN DE JUGADORES Y REGLA DE TAMAÑO FIJO ---
-col_players, _ = st.columns([1, 10])
+col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
-# REGLA MAESTRA DE COLUMNAS (Alineación perfecta)
+# REGLA MAESTRA DE COLUMNAS
 peso_label = 2.5
 peso_jugador = 1.5
 peso_fantasma = (5 - num_jugadores) * peso_jugador
@@ -139,17 +139,18 @@ with st.container():
                     puntos_ali[i] += cartas * vol
             st.markdown("<hr style='margin: 8px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
-    # --- SECCIÓN 2: TRACKS ---
+    # --- SECCIÓN 2: TRACKS (CON LÍMITE DE 12) ---
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
     cols_t = st.columns(anchos_columnas)
     puntos_tracks = []
-    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja")
+    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja (Máx 12)")
     for i in range(num_jugadores):
         with cols_t[i+1]:
             with st.popover("📍 Editar"):
-                t1 = st.number_input("Amenidad", 0, key=f"tr1_{i}")
-                t2 = st.number_input("Asistencia", 0, key=f"tr2_{i}")
-                t3 = st.number_input("Precio", 0, key=f"tr3_{i}")
+                # Agregamos min_value=0 y max_value=12 a los 3 inputs
+                t1 = st.number_input("Amenidad", min_value=0, max_value=12, value=0, key=f"tr1_{i}")
+                t2 = st.number_input("Asistencia", min_value=0, max_value=12, value=0, key=f"tr2_{i}")
+                t3 = st.number_input("Precio", min_value=0, max_value=12, value=0, key=f"tr3_{i}")
             val_min = min(t1, t2, t3)
             st.code(f"PV: {val_min}")
             puntos_tracks.append(val_min)
@@ -184,15 +185,13 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 8. PANEL DE RESULTADOS (ALINEACIÓN PERFECTA BAJO JUGADORES) ---
+# --- 8. PANEL DE RESULTADOS ---
 st.markdown("---")
 
-# Usamos la misma regla de anchos que la tabla para que coincidan las columnas
 res_cols = st.columns(anchos_columnas)
 
-# Saltamos la primera columna (índice 0) porque es el espacio de las etiquetas
 for i in range(num_jugadores):
-    with res_cols[i+1]: # Empezamos en i+1 para alinear con las columnas de jugadores
+    with res_cols[i+1]: 
         nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
         st.markdown(f"""
         <div class="total-card" style="border-color: {colores_jugadores[i]};">
@@ -201,7 +200,6 @@ for i in range(num_jugadores):
         </div>
         """, unsafe_allow_html=True)
 
-# --- BOTÓN DE REINICIO ---
 st.markdown("<br><br>", unsafe_allow_html=True)
 _, col_boton, _ = st.columns([2, 1, 2])
 with col_boton:
