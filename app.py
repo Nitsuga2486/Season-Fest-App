@@ -12,9 +12,9 @@ fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.
 
 # --- 3. DICCIONARIO DE GÉNEROS Y COLORES ---
 colores_generos = {
-    "ROCK": "#4A0E0E",
+    "ROCK": "#301013",
     "ALTERNATIVE": "#D68A45",
-    "EDM": "#C5A046",
+    "EDM": "#B59042",
     "PUNK": "#2D5A3A",
     "HIP HOP / RAP": "#4A90C2",
     "METAL": "#5E4085",
