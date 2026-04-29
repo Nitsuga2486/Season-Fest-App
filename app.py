@@ -142,6 +142,8 @@ with st.container():
 
 # --- 6. RESULTADOS (Dinámicos) ---
 st.markdown("---")
+
+# 👇 AQUI ESTA EL SECRETO: Usar num_jugadores en lugar de 5 👇
 res_cols = st.columns(num_jugadores)
 for i in range(num_jugadores):
     with res_cols[i]:
