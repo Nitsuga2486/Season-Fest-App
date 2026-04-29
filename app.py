@@ -12,9 +12,9 @@ fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.
 
 # --- 3. DICCIONARIO DE GÉNEROS Y COLORES ---
 colores_generos = {
-    "ROCK": "#301013",
+    "ROCK": "#4A0E0E",
     "ALTERNATIVE": "#D68A45",
-    "EDM": "#B59042",
+    "EDM": "#C5A046",
     "PUNK": "#2D5A3A",
     "HIP HOP / RAP": "#4A90C2",
     "METAL": "#5E4085",
@@ -26,7 +26,6 @@ colores_generos = {
 css_faders = ""
 for g, color_hex in colores_generos.items():
     g_clean = g.replace(" ", "_").replace("/", "")
-    # Este truco de CSS busca la etiqueta con el nombre del género y pinta el fader exacto que le sigue
     css_faders += f"""
     div.element-container:has(#label-{g_clean}) + div.element-container .stSlider > div > div > div > div {{
         background-color: {color_hex} !important;
@@ -72,7 +71,6 @@ st.markdown(f"""
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
     
-    /* Inyectamos los colores personalizados de los faders aquí */
     {css_faders}
 </style>
 """, unsafe_allow_html=True)
@@ -84,6 +82,7 @@ col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
+# REGLA MAESTRA DE COLUMNAS (Alineación perfecta)
 peso_label = 2.5
 peso_jugador = 1.5
 peso_fantasma = (5 - num_jugadores) * peso_jugador
@@ -123,31 +122,21 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- SECCIÓN 1: ALINEACIÓN (TEXTO BLANCO Y FADERS DE COLOR) ---
+    # --- SECCIÓN 1: ALINEACIÓN ---
     with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
         st.caption("Ajusta el fader (0 a 4) y anota los artistas de cada jugador.")
         puntos_ali = [0] * num_jugadores
         
         for g, color_hex in colores_generos.items():
             g_clean = g.replace(" ", "_").replace("/", "")
-            
             cols = st.columns(anchos_columnas)
             with cols[0]:
-                # Nombre del género en BLANCO con un ID único
-                st.markdown(f"""
-                <div id="label-{g_clean}" style='color: white; font-weight: bold; font-size: 16px; margin-bottom: -15px;'>
-                    🔊 {g}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # El fader invisiblemente tomará el color desde nuestro CSS
+                st.markdown(f"<div id='label-{g_clean}' style='color: white; font-weight: bold; font-size: 16px; margin-bottom: -15px;'>🔊 {g}</div>", unsafe_allow_html=True)
                 vol = st.slider(g, min_value=0, max_value=4, value=0, key=f"vol_{g_clean}", label_visibility="collapsed")
-            
             for i in range(num_jugadores):
                 with cols[i+1]:
                     cartas = st.number_input(f"Cartas_{g_clean}_{i}", 0, key=f"c_{g_clean}_{i}", label_visibility="collapsed")
                     puntos_ali[i] += cartas * vol
-            
             st.markdown("<hr style='margin: 8px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
     # --- SECCIÓN 2: TRACKS ---
@@ -176,7 +165,6 @@ with st.container():
     puntos_dinero = []
     with cols_d[0]: 
         st.markdown("<div class='category-label'>💰 7. DINERO</div>", unsafe_allow_html=True)
-        st.caption("1 PV por cada 5 sobrantes")
     for i in range(num_jugadores):
         with cols_d[i+1]:
             din = st.number_input("Dinero", 0, key=f"din_{i}", label_visibility="collapsed")
@@ -196,27 +184,25 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 8. PANEL DE RESULTADOS CON TAMAÑO FIJO ---
+# --- 8. PANEL DE RESULTADOS (ALINEACIÓN PERFECTA BAJO JUGADORES) ---
 st.markdown("---")
 
-espacio_vacio_res = 5 - num_jugadores
-if espacio_vacio_res > 0:
-    anchos_res = [1] * num_jugadores + [espacio_vacio_res]
-else:
-    anchos_res = [1] * num_jugadores
+# Usamos la misma regla de anchos que la tabla para que coincidan las columnas
+res_cols = st.columns(anchos_columnas)
 
-res_cols = st.columns(anchos_res)
+# Saltamos la primera columna (índice 0) porque es el espacio de las etiquetas
 for i in range(num_jugadores):
-    with res_cols[i]:
+    with res_cols[i+1]: # Empezamos en i+1 para alinear con las columnas de jugadores
         nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
         st.markdown(f"""
         <div class="total-card" style="border-color: {colores_jugadores[i]};">
             <h2 style="color: {colores_jugadores[i]}; margin:0; font-size:40px;">{totales[i]}</h2>
-            <div style="color: white; font-weight: bold; margin-top:5px;">{nombre_display}</div>
+            <div style="color: white; font-weight: bold; margin-top:5px; font-size:14px;">{nombre_display}</div>
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown("<br><br><br>", unsafe_allow_html=True)
+# --- BOTÓN DE REINICIO ---
+st.markdown("<br><br>", unsafe_allow_html=True)
 _, col_boton, _ = st.columns([2, 1, 2])
 with col_boton:
     if st.button("🔄 REINICIAR TABLERO", use_container_width=True):
