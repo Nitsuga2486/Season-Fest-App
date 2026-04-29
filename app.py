@@ -71,8 +71,7 @@ with st.container():
     with cols_n[0]: st.subheader("👤 JUGADORES")
     for i in range(num_jugadores):
         with cols_n[i+1]:
-            n = st.text_input(f"n_{i}", f"JUGADOR {i+1}", key=f"n_{i}", label_visibility="collapsed")
-            nombres.append(n)
+            n = st.text_input(f"n_{i}", value="", placeholder="Ingrese nombre", key=f"n_{i}", label_visibility="collapsed")
 
     st.divider()
 
