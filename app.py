@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit_daq as daq
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
@@ -47,11 +46,10 @@ st.markdown(f"""
         box-shadow: 0 0 15px rgba(0,0,0,0.5);
         margin-bottom: 10px;
     }}
-    /* Estilo para que los inputs se vean integrados */
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
     
-    /* Ajuste de color para las perillas (Knobs) */
+    /* Ajuste de color para los sliders */
     .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
 </style>
 """, unsafe_allow_html=True)
@@ -81,7 +79,6 @@ with st.container():
 
     st.divider()
 
-    # Función auxiliar para filas estándar (Objetivos, Sede, etc.)
     def crear_fila(label, key_p, sub=""):
         cols = st.columns([2] + [1] * num_jugadores)
         with cols[0]: 
@@ -94,37 +91,30 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- SECCIÓN 1: ALINEACIÓN (CONSOLA CON PERILLAS) ---
+    # --- SECCIÓN 1: ALINEACIÓN (FADERS NATIVOS) ---
     with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
-        st.caption("Gira la perilla para ajustar el nivel global y anota los artistas de cada jugador.")
+        st.caption("Ajusta el fader (0 a 4) y anota los artistas de cada jugador.")
         generos = ["Pop", "Rock", "Electronic", "Jazz", "Metal", "Indie", "Hip Hop", "Classical"]
         puntos_ali = [0] * num_jugadores
         
         for g in generos:
             cols = st.columns([2] + [1] * num_jugadores)
             with cols[0]:
-                # PERILLA ANALÓGICA
-                vol = daq.Knob(
-                    label=f"🔊 {g}", 
-                    min=0, max=4, value=0, 
-                    size=70, color="#00D1FF",
-                    key=f"knob_{g}"
-                )
+                # SLIDER ESTABLE Y NATIVO
+                vol = st.slider(f"🔊 Nivel {g}", min_value=0, max_value=4, value=0, key=f"vol_{g}")
             
             for i in range(num_jugadores):
                 with cols[i+1]:
-                    # Entrada de número de cartas/artistas
                     cartas = st.number_input(f"Cartas_{g}_{i}", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
-                    # Cálculo: Valor de la perilla (entero) x cantidad de cartas
-                    puntos_ali[i] += cartas * int(vol)
+                    puntos_ali[i] += cartas * vol
             
-            st.markdown("<hr style='margin: 10px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 5px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
     # --- SECCIÓN 2: TRACKS ---
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
     cols_t = st.columns([2] + [1] * num_jugadores)
     puntos_tracks = []
-    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja (Amenidad, Asistencia, Precio)")
+    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja")
     for i in range(num_jugadores):
         with cols_t[i+1]:
             with st.popover("📍 Editar"):
@@ -159,7 +149,6 @@ with st.container():
     ex2 = crear_fila("➕ EXTRA 2", "e2")
     ex3 = crear_fila("➕ EXTRA 3", "e3")
 
-    # --- CÁLCULO FINAL DE TOTALES ---
     for i in range(num_jugadores):
         totales[i] = (puntos_ali[i] + puntos_tracks[i] + obj[i] + 
                      sede[i] + proy[i] + esc[i] + puntos_dinero[i] + 
@@ -167,12 +156,11 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 6. PANEL DE RESULTADOS (TARJETAS DINÁMICAS) ---
+# --- 6. PANEL DE RESULTADOS ---
 st.markdown("---")
 res_cols = st.columns(num_jugadores)
 for i in range(num_jugadores):
     with res_cols[i]:
-        # Mostramos el nombre del jugador o un genérico si está vacío
         nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
         st.markdown(f"""
         <div class="total-card" style="border-color: {colores[i]};">
@@ -181,7 +169,6 @@ for i in range(num_jugadores):
         </div>
         """, unsafe_allow_html=True)
 
-# --- ESPACIADOR Y BOTÓN DE REINICIO ---
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 _, col_boton, _ = st.columns([2, 1, 2])
 with col_boton:
