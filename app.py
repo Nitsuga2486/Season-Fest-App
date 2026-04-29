@@ -49,10 +49,7 @@ st.markdown(f"""
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
     
-    /* Estilo para los sliders de niveles */
-    .stSelectSlider div[data-baseweb="slider"] {{
-        padding-bottom: 25px;
-    }}
+    .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -63,6 +60,17 @@ col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
+# --- NUEVA REGLA MAESTRA DE TAMAÑO FIJO ---
+# Etiquetas/Faders: 25% (2.5 partes) | Cada Jugador: 15% (1.5 partes)
+peso_label = 2.5
+peso_jugador = 1.5
+peso_fantasma = (5 - num_jugadores) * peso_jugador
+
+if peso_fantasma > 0:
+    anchos_columnas = [peso_label] + [peso_jugador] * num_jugadores + [peso_fantasma]
+else:
+    anchos_columnas = [peso_label] + [peso_jugador] * num_jugadores
+
 # --- 5. LÓGICA DE CAPTURA DINÁMICA ---
 colores = ["#00D1FF", "#FF3366", "#FFD700", "#00FF85", "#BF00FF"]
 nombres = []
@@ -72,20 +80,17 @@ with st.container():
     st.markdown("<div class='main-container'>", unsafe_allow_html=True)
     
     # SECCIÓN: NOMBRES
-    # Usamos una proporción de 3 para la etiqueta y 1 para cada jugador para dar estabilidad
-    proporciones = [3] + [1] * num_jugadores
-    cols_n = st.columns(proporciones)
+    cols_n = st.columns(anchos_columnas)
     with cols_n[0]: st.subheader("👤 JUGADORES")
     for i in range(num_jugadores):
         with cols_n[i+1]:
-            n = st.text_input(f"n_{i}", value="", placeholder="Nombre", key=f"n_{i}", label_visibility="collapsed")
+            n = st.text_input(f"n_{i}", value="", placeholder="Ingrese nombre", key=f"n_{i}", label_visibility="collapsed")
             nombres.append(n)
 
     st.divider()
 
-    # Función auxiliar para filas estándar
     def crear_fila(label, key_p, sub=""):
-        cols = st.columns(proporciones)
+        cols = st.columns(anchos_columnas)
         with cols[0]: 
             st.markdown(f"<div class='category-label'>{label}</div>", unsafe_allow_html=True)
             if sub: st.caption(sub)
@@ -96,35 +101,29 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- SECCIÓN 1: ALINEACIÓN (CONSOLA ESTÁNDAR) ---
-    with st.expander("🎼 1. ALINEACIÓN (NIVELES DE GÉNERO)", expanded=True):
-        st.caption("Ajusta el nivel del género (0-4) y anota cuántas cartas tiene cada jugador.")
+    # --- SECCIÓN 1: ALINEACIÓN (FADERS NATIVOS) ---
+    with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
+        st.caption("Ajusta el fader (0 a 4) y anota los artistas de cada jugador.")
         generos = ["Pop", "Rock", "Electronic", "Jazz", "Metal", "Indie", "Hip Hop", "Classical"]
         puntos_ali = [0] * num_jugadores
         
         for g in generos:
-            cols = st.columns(proporciones)
+            cols = st.columns(anchos_columnas)
             with cols[0]:
-                # Usamos select_slider para tener indicadores fijos (0, 1, 2, 3, 4)
-                vol = st.select_slider(
-                    f"🎛️ {g}",
-                    options=[0, 1, 2, 3, 4],
-                    value=0,
-                    key=f"vol_{g}"
-                )
+                vol = st.slider(f"🔊 Nivel {g}", min_value=0, max_value=4, value=0, key=f"vol_{g}")
             
             for i in range(num_jugadores):
                 with cols[i+1]:
-                    cartas = st.number_input(f"c_{g}_{i}", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
+                    cartas = st.number_input(f"Cartas_{g}_{i}", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
                     puntos_ali[i] += cartas * vol
             
-            st.markdown("<hr style='margin: 5px 0; opacity: 0.1;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 5px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
     # --- SECCIÓN 2: TRACKS ---
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
-    cols_t = st.columns(proporciones)
+    cols_t = st.columns(anchos_columnas)
     puntos_tracks = []
-    with cols_t[0]: st.caption("PV de la ficha más baja (Amenidad/Asist/Precio)")
+    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja")
     for i in range(num_jugadores):
         with cols_t[i+1]:
             with st.popover("📍 Editar"):
@@ -135,16 +134,18 @@ with st.container():
             st.code(f"PV: {val_min}")
             puntos_tracks.append(val_min)
 
-    # --- RESTO DE CATEGORÍAS ---
-    obj = crear_fila("🎯 3. OBJETIVOS", "obj", "PV marcadores")
-    sede = crear_fila("⛺ 4. SEDE", "sed", "Suma construcciones")
-    proy = crear_fila("📋 5. PROYECTOS", "pro", "Suma grupos")
-    esc = crear_fila("🏟️ 6. ESCENARIOS", "esc", "Tableros alineación")
+    # --- CATEGORÍAS ESTÁNDAR ---
+    obj = crear_fila("🎯 3. OBJETIVOS", "obj", "PV marcadores completados")
+    sede = crear_fila("⛺ 4. SEDE", "sed", "Suma de construcciones")
+    proy = crear_fila("📋 5. PROYECTOS", "pro", "Suma de grupos")
+    esc = crear_fila("🏟️ 6. ESCENARIOS", "esc", "Tableros de alineación")
 
-    # --- DINERO ---
-    cols_d = st.columns(proporciones)
+    # --- SECCIÓN 7: DINERO ---
+    cols_d = st.columns(anchos_columnas)
     puntos_dinero = []
-    with cols_d[0]: st.markdown("<div class='category-label'>💰 7. DINERO (PV: 1x5$)</div>", unsafe_allow_html=True)
+    with cols_d[0]: 
+        st.markdown("<div class='category-label'>💰 7. DINERO</div>", unsafe_allow_html=True)
+        st.caption("1 PV por cada 5 sobrantes")
     for i in range(num_jugadores):
         with cols_d[i+1]:
             din = st.number_input("Dinero", 0, key=f"din_{i}", label_visibility="collapsed")
@@ -152,20 +153,29 @@ with st.container():
             st.code(f"PV: {pd}")
             puntos_dinero.append(pd)
 
-    # EXTRAS
+    # --- SECCIÓN EXTRAS ---
     ex1 = crear_fila("➕ EXTRA 1", "e1")
     ex2 = crear_fila("➕ EXTRA 2", "e2")
     ex3 = crear_fila("➕ EXTRA 3", "e3")
 
     for i in range(num_jugadores):
-        totales[i] = (puntos_ali[i] + puntos_tracks[i] + obj[i] + sede[i] + 
-                     proy[i] + esc[i] + puntos_dinero[i] + ex1[i] + ex2[i] + ex3[i])
+        totales[i] = (puntos_ali[i] + puntos_tracks[i] + obj[i] + 
+                     sede[i] + proy[i] + esc[i] + puntos_dinero[i] + 
+                     ex1[i] + ex2[i] + ex3[i])
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 6. PANEL DE RESULTADOS ---
+# --- 6. PANEL DE RESULTADOS CON TAMAÑO FIJO ---
 st.markdown("---")
-res_cols = st.columns(num_jugadores)
+
+# Aplicamos la misma lógica de columna fantasma a los resultados
+espacio_vacio_res = 5 - num_jugadores
+if espacio_vacio_res > 0:
+    anchos_res = [1] * num_jugadores + [espacio_vacio_res]
+else:
+    anchos_res = [1] * num_jugadores
+
+res_cols = st.columns(anchos_res)
 for i in range(num_jugadores):
     with res_cols[i]:
         nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
