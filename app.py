@@ -10,7 +10,30 @@ st.set_page_config(
 # --- 2. CONFIGURACIÓN DE IMAGEN DE FONDO ---
 fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.png"
 
-# --- 3. ESTILOS CSS (DISEÑO NEÓN) ---
+# --- 3. DICCIONARIO DE GÉNEROS Y COLORES ---
+colores_generos = {
+    "ROCK": "#4A0E0E",
+    "ALTERNATIVE": "#D68A45",
+    "EDM": "#C5A046",
+    "PUNK": "#2D5A3A",
+    "HIP HOP / RAP": "#4A90C2",
+    "METAL": "#5E4085",
+    "HEAVY METAL": "#1B264F",
+    "POP": "#A64473"
+}
+
+# --- 4. GENERACIÓN DINÁMICA DE CSS PARA CADA FADER ---
+css_faders = ""
+for g, color_hex in colores_generos.items():
+    g_clean = g.replace(" ", "_").replace("/", "")
+    # Este truco de CSS busca la etiqueta con el nombre del género y pinta el fader exacto que le sigue
+    css_faders += f"""
+    div.element-container:has(#label-{g_clean}) + div.element-container .stSlider > div > div > div > div {{
+        background-color: {color_hex} !important;
+    }}
+    """
+
+# --- 5. ESTILOS CSS GENERALES ---
 st.markdown(f"""
 <style>
     .stApp {{
@@ -49,19 +72,18 @@ st.markdown(f"""
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
     
-    /* Mantenemos el riel del fader en azul neón para que contraste con los textos */
-    .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
+    /* Inyectamos los colores personalizados de los faders aquí */
+    {css_faders}
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<div class='centered-title'>🎸 FEST SEASON - SCOREBOARD 🎸</div>", unsafe_allow_html=True)
 
-# --- 4. SELECCIÓN DE JUGADORES ---
+# --- 6. SELECCIÓN DE JUGADORES Y REGLA DE TAMAÑO FIJO ---
 col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
-# --- REGLA MAESTRA DE TAMAÑO FIJO ---
 peso_label = 2.5
 peso_jugador = 1.5
 peso_fantasma = (5 - num_jugadores) * peso_jugador
@@ -71,22 +93,10 @@ if peso_fantasma > 0:
 else:
     anchos_columnas = [peso_label] + [peso_jugador] * num_jugadores
 
-# --- 5. LÓGICA DE CAPTURA DINÁMICA ---
+# --- 7. LÓGICA DE CAPTURA DINÁMICA ---
 colores_jugadores = ["#00D1FF", "#FF3366", "#FFD700", "#00FF85", "#BF00FF"]
 nombres = []
 totales = [0] * num_jugadores
-
-# DICCIONARIO DE GÉNEROS Y COLORES
-colores_generos = {
-    "ROCK": "#4A0E0E",
-    "ALTERNATIVE": "#D68A45",
-    "EDM": "#C5A046",
-    "PUNK": "#2D5A3A",
-    "HIP HOP / RAP": "#4A90C2",
-    "METAL": "#5E4085",
-    "HEAVY METAL": "#1B264F",
-    "POP": "#A64473"
-}
 
 with st.container():
     st.markdown("<div class='main-container'>", unsafe_allow_html=True)
@@ -113,26 +123,24 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- SECCIÓN 1: ALINEACIÓN (CON COLORES PERSONALIZADOS) ---
+    # --- SECCIÓN 1: ALINEACIÓN (TEXTO BLANCO Y FADERS DE COLOR) ---
     with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
         st.caption("Ajusta el fader (0 a 4) y anota los artistas de cada jugador.")
         puntos_ali = [0] * num_jugadores
         
         for g, color_hex in colores_generos.items():
-            # Limpiamos el nombre para que Streamlit no se confunda con espacios o diagonales en la "key"
             g_clean = g.replace(" ", "_").replace("/", "")
             
             cols = st.columns(anchos_columnas)
             with cols[0]:
-                # Texto personalizado con tu color exacto (añadí un bordecito/sombra para que los oscuros resalten en el fondo)
+                # Nombre del género en BLANCO con un ID único
                 st.markdown(f"""
-                <div style='color: {color_hex}; font-weight: bold; font-size: 16px; margin-bottom: -15px; 
-                     text-shadow: 1px 1px 2px rgba(255,255,255,0.2);'>
+                <div id="label-{g_clean}" style='color: white; font-weight: bold; font-size: 16px; margin-bottom: -15px;'>
                     🔊 {g}
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Fader sin texto nativo
+                # El fader invisiblemente tomará el color desde nuestro CSS
                 vol = st.slider(g, min_value=0, max_value=4, value=0, key=f"vol_{g_clean}", label_visibility="collapsed")
             
             for i in range(num_jugadores):
@@ -188,7 +196,7 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 6. PANEL DE RESULTADOS CON TAMAÑO FIJO ---
+# --- 8. PANEL DE RESULTADOS CON TAMAÑO FIJO ---
 st.markdown("---")
 
 espacio_vacio_res = 5 - num_jugadores
