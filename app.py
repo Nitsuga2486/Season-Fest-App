@@ -8,7 +8,6 @@ st.set_page_config(
 )
 
 # --- 2. CONFIGURACIÓN DE IMAGEN DESDE CDN ---
-# Usamos tu URL oficial para que el fondo cargue sin problemas
 fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.png"
 
 # --- 3. ESTILOS CSS ---
@@ -49,6 +48,8 @@ st.markdown(f"""
     }}
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
+    /* Estilo para los sliders de volumen */
+    .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,18 +68,17 @@ totales = [0] * num_jugadores
 with st.container():
     st.markdown("<div class='main-container'>", unsafe_allow_html=True)
     
-    # SECCIÓN: NOMBRES (Solo el número seleccionado)
+    # SECCIÓN: NOMBRES
     cols_n = st.columns([2] + [1] * num_jugadores)
     with cols_n[0]: st.subheader("👤 JUGADORES")
     for i in range(num_jugadores):
         with cols_n[i+1]:
-            # Aquí aplicamos el placeholder "Ingrese nombre"
             n = st.text_input(f"n_{i}", value="", placeholder="Ingrese nombre", key=f"n_{i}", label_visibility="collapsed")
             nombres.append(n)
 
     st.divider()
 
-    # Función auxiliar para filas de puntos dinámica
+    # Función auxiliar para filas estándar
     def crear_fila(label, key_p, sub=""):
         cols = st.columns([2] + [1] * num_jugadores)
         with cols[0]: 
@@ -91,13 +91,27 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # 1. ALINEACIÓN
-    with st.expander("🎼 1. ALINEACIÓN (8 GÉNEROS)"):
+    # --- NUEVA SECCIÓN 1. ALINEACIÓN (CONSOLA DE MEZCLA) ---
+    with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
+        st.caption("Ajusta el nivel global (0 a 4) y anota los artistas de cada jugador. Los PV se calculan solos.")
         generos = ["Pop", "Rock", "Electronic", "Jazz", "Metal", "Indie", "Hip Hop", "Classical"]
         puntos_ali = [0] * num_jugadores
+        
         for g in generos:
-            p_gen = crear_fila(f"Artistas {g}", f"g_{g}", "PV x Volumen")
-            for i in range(num_jugadores): puntos_ali[i] += p_gen[i]
+            cols = st.columns([2] + [1] * num_jugadores)
+            with cols[0]:
+                # Slider de 0 a 4
+                vol = st.slider(f"🔊 Nivel {g}", min_value=0, max_value=4, value=0, key=f"vol_{g}")
+            
+            for i in range(num_jugadores):
+                with cols[i+1]:
+                    # Captura de número de cartas
+                    cartas = st.number_input(f"Cartas", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
+                    # El programa multiplica automáticamente Nivel x Cartas
+                    puntos_ali[i] += cartas * vol
+            
+            # Línea divisoria sutil entre géneros
+            st.markdown("<hr style='margin: 0px; border-color: rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
 
     # 2. TRACKS
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
