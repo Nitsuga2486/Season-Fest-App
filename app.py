@@ -54,7 +54,7 @@ st.markdown(f"""
 st.markdown("<div class='centered-title'>🎸 FEST SEASON - SCOREBOARD 🎸</div>", unsafe_allow_html=True)
 
 # --- 4. SELECCIÓN DE JUGADORES ---
-col_players, _ = st.columns([1, 8])
+col_players, _ = st.columns([1, 10])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
