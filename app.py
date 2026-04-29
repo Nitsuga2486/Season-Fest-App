@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit_daq as daq
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
@@ -7,10 +8,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CONFIGURACIÓN DE IMAGEN DESDE CDN ---
+# --- 2. CONFIGURACIÓN DE IMAGEN DE FONDO ---
 fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.png"
 
-# --- 3. ESTILOS CSS ---
+# --- 3. ESTILOS CSS (DISEÑO NEÓN) ---
 st.markdown(f"""
 <style>
     .stApp {{
@@ -46,9 +47,11 @@ st.markdown(f"""
         box-shadow: 0 0 15px rgba(0,0,0,0.5);
         margin-bottom: 10px;
     }}
+    /* Estilo para que los inputs se vean integrados */
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
-    /* Estilo para los sliders de volumen */
+    
+    /* Ajuste de color para las perillas (Knobs) */
     .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
 </style>
 """, unsafe_allow_html=True)
@@ -78,7 +81,7 @@ with st.container():
 
     st.divider()
 
-    # Función auxiliar para filas estándar
+    # Función auxiliar para filas estándar (Objetivos, Sede, etc.)
     def crear_fila(label, key_p, sub=""):
         cols = st.columns([2] + [1] * num_jugadores)
         with cols[0]: 
@@ -91,54 +94,59 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- NUEVA SECCIÓN 1. ALINEACIÓN (CONSOLA DE MEZCLA) ---
+    # --- SECCIÓN 1: ALINEACIÓN (CONSOLA CON PERILLAS) ---
     with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
-        st.caption("Ajusta el nivel global (0 a 4) y anota los artistas de cada jugador. Los PV se calculan solos.")
+        st.caption("Gira la perilla para ajustar el nivel global y anota los artistas de cada jugador.")
         generos = ["Pop", "Rock", "Electronic", "Jazz", "Metal", "Indie", "Hip Hop", "Classical"]
         puntos_ali = [0] * num_jugadores
         
         for g in generos:
             cols = st.columns([2] + [1] * num_jugadores)
             with cols[0]:
-                # Slider de 0 a 4
-                vol = st.slider(f"🔊 Nivel {g}", min_value=0, max_value=4, value=0, key=f"vol_{g}")
+                # PERILLA ANALÓGICA
+                vol = daq.Knob(
+                    label=f"🔊 {g}", 
+                    min=0, max=4, value=0, 
+                    size=70, color="#00D1FF",
+                    key=f"knob_{g}"
+                )
             
             for i in range(num_jugadores):
                 with cols[i+1]:
-                    # Captura de número de cartas
-                    cartas = st.number_input(f"Cartas", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
-                    # El programa multiplica automáticamente Nivel x Cartas
-                    puntos_ali[i] += cartas * vol
+                    # Entrada de número de cartas/artistas
+                    cartas = st.number_input(f"Cartas_{g}_{i}", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
+                    # Cálculo: Valor de la perilla (entero) x cantidad de cartas
+                    puntos_ali[i] += cartas * int(vol)
             
-            # Línea divisoria sutil entre géneros
-            st.markdown("<hr style='margin: 0px; border-color: rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 10px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
-    # 2. TRACKS
+    # --- SECCIÓN 2: TRACKS ---
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
     cols_t = st.columns([2] + [1] * num_jugadores)
     puntos_tracks = []
-    with cols_t[0]: st.caption("PV de la ficha más baja")
+    with cols_t[0]: st.caption("Se toma el PV de la ficha más baja (Amenidad, Asistencia, Precio)")
     for i in range(num_jugadores):
         with cols_t[i+1]:
             with st.popover("📍 Editar"):
                 t1 = st.number_input("Amenidad", 0, key=f"tr1_{i}")
                 t2 = st.number_input("Asistencia", 0, key=f"tr2_{i}")
                 t3 = st.number_input("Precio", 0, key=f"tr3_{i}")
-            m = min(t1, t2, t3)
-            st.code(f"PV: {m}")
-            puntos_tracks.append(m)
+            val_min = min(t1, t2, t3)
+            st.code(f"PV: {val_min}")
+            puntos_tracks.append(val_min)
 
-    # RESTO DE CATEGORÍAS
-    obj = crear_fila("🎯 3. OBJETIVOS", "obj", "PV marcadores")
-    sede = crear_fila("⛺ 4. SEDE", "sed", "Suma construcciones")
-    proy = crear_fila("📋 5. PROYECTOS", "pro", "Suma grupos")
-    esc = crear_fila("🏟️ 6. ESCENARIOS", "esc", "Tableros alineación")
+    # --- CATEGORÍAS ESTÁNDAR ---
+    obj = crear_fila("🎯 3. OBJETIVOS", "obj", "PV marcadores completados")
+    sede = crear_fila("⛺ 4. SEDE", "sed", "Suma de construcciones")
+    proy = crear_fila("📋 5. PROYECTOS", "pro", "Suma de grupos")
+    esc = crear_fila("🏟️ 6. ESCENARIOS", "esc", "Tableros de alineación")
 
-    # 7. DINERO
+    # --- SECCIÓN 7: DINERO ---
     cols_d = st.columns([2] + [1] * num_jugadores)
     puntos_dinero = []
     with cols_d[0]: 
         st.markdown("<div class='category-label'>💰 7. DINERO</div>", unsafe_allow_html=True)
+        st.caption("1 PV por cada 5 sobrantes")
     for i in range(num_jugadores):
         with cols_d[i+1]:
             din = st.number_input("Dinero", 0, key=f"din_{i}", label_visibility="collapsed")
@@ -146,31 +154,35 @@ with st.container():
             st.code(f"PV: {pd}")
             puntos_dinero.append(pd)
 
-    # EXTRAS
+    # --- SECCIÓN EXTRAS ---
     ex1 = crear_fila("➕ EXTRA 1", "e1")
     ex2 = crear_fila("➕ EXTRA 2", "e2")
     ex3 = crear_fila("➕ EXTRA 3", "e3")
 
-    # CÁLCULO TOTAL
+    # --- CÁLCULO FINAL DE TOTALES ---
     for i in range(num_jugadores):
-        totales[i] = puntos_ali[i] + puntos_tracks[i] + obj[i] + sede[i] + proy[i] + esc[i] + puntos_dinero[i] + ex1[i] + ex2[i] + ex3[i]
+        totales[i] = (puntos_ali[i] + puntos_tracks[i] + obj[i] + 
+                     sede[i] + proy[i] + esc[i] + puntos_dinero[i] + 
+                     ex1[i] + ex2[i] + ex3[i])
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 6. RESULTADOS (Dinámicos) ---
+# --- 6. PANEL DE RESULTADOS (TARJETAS DINÁMICAS) ---
 st.markdown("---")
 res_cols = st.columns(num_jugadores)
 for i in range(num_jugadores):
     with res_cols[i]:
+        # Mostramos el nombre del jugador o un genérico si está vacío
+        nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
         st.markdown(f"""
         <div class="total-card" style="border-color: {colores[i]};">
             <h2 style="color: {colores[i]}; margin:0; font-size:40px;">{totales[i]}</h2>
-            <div style="color: white; font-weight: bold; margin-top:5px;">{nombres[i]}</div>
+            <div style="color: white; font-weight: bold; margin-top:5px;">{nombre_display}</div>
         </div>
         """, unsafe_allow_html=True)
 
-# ESPACIADOR Y BOTÓN
-st.markdown("<br><br>", unsafe_allow_html=True)
+# --- ESPACIADOR Y BOTÓN DE REINICIO ---
+st.markdown("<br><br><br>", unsafe_allow_html=True)
 _, col_boton, _ = st.columns([2, 1, 2])
 with col_boton:
     if st.button("🔄 REINICIAR TABLERO", use_container_width=True):
