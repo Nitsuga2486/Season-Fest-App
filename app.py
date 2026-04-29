@@ -8,6 +8,7 @@ st.set_page_config(
 )
 
 # --- 2. CONFIGURACIÓN DE IMAGEN DESDE CDN ---
+# Usamos tu URL oficial para que el fondo cargue sin problemas
 fondo_url = "https://greenastragames.com/juego-de-mesa/fest-season/img/publico4.png"
 
 # --- 3. ESTILOS CSS ---
@@ -54,7 +55,7 @@ st.markdown(f"""
 st.markdown("<div class='centered-title'>🎸 FEST SEASON - SCOREBOARD 🎸</div>", unsafe_allow_html=True)
 
 # --- 4. SELECCIÓN DE JUGADORES ---
-col_players, _ = st.columns([1, 10])
+col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
@@ -71,7 +72,9 @@ with st.container():
     with cols_n[0]: st.subheader("👤 JUGADORES")
     for i in range(num_jugadores):
         with cols_n[i+1]:
+            # Aquí aplicamos el placeholder "Ingrese nombre"
             n = st.text_input(f"n_{i}", value="", placeholder="Ingrese nombre", key=f"n_{i}", label_visibility="collapsed")
+            nombres.append(n)
 
     st.divider()
 
@@ -142,8 +145,6 @@ with st.container():
 
 # --- 6. RESULTADOS (Dinámicos) ---
 st.markdown("---")
-
-# 👇 AQUI ESTA EL SECRETO: Usar num_jugadores en lugar de 5 👇
 res_cols = st.columns(num_jugadores)
 for i in range(num_jugadores):
     with res_cols[i]:
