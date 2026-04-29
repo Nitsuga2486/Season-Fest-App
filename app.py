@@ -49,6 +49,7 @@ st.markdown(f"""
     div[data-baseweb="input"] {{ background: transparent !important; border: none !important; }}
     input {{ color: white !important; text-align: center !important; font-weight: bold !important; }}
     
+    /* Mantenemos el riel del fader en azul neón para que contraste con los textos */
     .stSlider > div > div > div > div {{ background-color: #00D1FF; }}
 </style>
 """, unsafe_allow_html=True)
@@ -60,8 +61,7 @@ col_players, _ = st.columns([1, 3])
 with col_players:
     num_jugadores = st.number_input("¿Cuántos juegan?", min_value=1, max_value=5, value=5)
 
-# --- NUEVA REGLA MAESTRA DE TAMAÑO FIJO ---
-# Etiquetas/Faders: 25% (2.5 partes) | Cada Jugador: 15% (1.5 partes)
+# --- REGLA MAESTRA DE TAMAÑO FIJO ---
 peso_label = 2.5
 peso_jugador = 1.5
 peso_fantasma = (5 - num_jugadores) * peso_jugador
@@ -72,9 +72,21 @@ else:
     anchos_columnas = [peso_label] + [peso_jugador] * num_jugadores
 
 # --- 5. LÓGICA DE CAPTURA DINÁMICA ---
-colores = ["#00D1FF", "#FF3366", "#FFD700", "#00FF85", "#BF00FF"]
+colores_jugadores = ["#00D1FF", "#FF3366", "#FFD700", "#00FF85", "#BF00FF"]
 nombres = []
 totales = [0] * num_jugadores
+
+# DICCIONARIO DE GÉNEROS Y COLORES
+colores_generos = {
+    "ROCK": "#4A0E0E",
+    "ALTERNATIVE": "#D68A45",
+    "EDM": "#C5A046",
+    "PUNK": "#2D5A3A",
+    "HIP HOP / RAP": "#4A90C2",
+    "METAL": "#5E4085",
+    "HEAVY METAL": "#1B264F",
+    "POP": "#A64473"
+}
 
 with st.container():
     st.markdown("<div class='main-container'>", unsafe_allow_html=True)
@@ -101,23 +113,34 @@ with st.container():
                 valores.append(v)
         return valores
 
-    # --- SECCIÓN 1: ALINEACIÓN (FADERS NATIVOS) ---
+    # --- SECCIÓN 1: ALINEACIÓN (CON COLORES PERSONALIZADOS) ---
     with st.expander("🎼 1. ALINEACIÓN (CONSOLA DE GÉNEROS)"):
         st.caption("Ajusta el fader (0 a 4) y anota los artistas de cada jugador.")
-        generos = ["Pop", "Rock", "Electronic", "Jazz", "Metal", "Indie", "Hip Hop", "Classical"]
         puntos_ali = [0] * num_jugadores
         
-        for g in generos:
+        for g, color_hex in colores_generos.items():
+            # Limpiamos el nombre para que Streamlit no se confunda con espacios o diagonales en la "key"
+            g_clean = g.replace(" ", "_").replace("/", "")
+            
             cols = st.columns(anchos_columnas)
             with cols[0]:
-                vol = st.slider(f"🔊 Nivel {g}", min_value=0, max_value=4, value=0, key=f"vol_{g}")
+                # Texto personalizado con tu color exacto (añadí un bordecito/sombra para que los oscuros resalten en el fondo)
+                st.markdown(f"""
+                <div style='color: {color_hex}; font-weight: bold; font-size: 16px; margin-bottom: -15px; 
+                     text-shadow: 1px 1px 2px rgba(255,255,255,0.2);'>
+                    🔊 {g}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Fader sin texto nativo
+                vol = st.slider(g, min_value=0, max_value=4, value=0, key=f"vol_{g_clean}", label_visibility="collapsed")
             
             for i in range(num_jugadores):
                 with cols[i+1]:
-                    cartas = st.number_input(f"Cartas_{g}_{i}", 0, key=f"c_{g}_{i}", label_visibility="collapsed")
+                    cartas = st.number_input(f"Cartas_{g_clean}_{i}", 0, key=f"c_{g_clean}_{i}", label_visibility="collapsed")
                     puntos_ali[i] += cartas * vol
             
-            st.markdown("<hr style='margin: 5px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 8px 0; border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
     # --- SECCIÓN 2: TRACKS ---
     st.markdown("<div class='category-label'>📊 2. TRACKS</div>", unsafe_allow_html=True)
@@ -168,7 +191,6 @@ with st.container():
 # --- 6. PANEL DE RESULTADOS CON TAMAÑO FIJO ---
 st.markdown("---")
 
-# Aplicamos la misma lógica de columna fantasma a los resultados
 espacio_vacio_res = 5 - num_jugadores
 if espacio_vacio_res > 0:
     anchos_res = [1] * num_jugadores + [espacio_vacio_res]
@@ -180,8 +202,8 @@ for i in range(num_jugadores):
     with res_cols[i]:
         nombre_display = nombres[i] if nombres[i] else f"JUGADOR {i+1}"
         st.markdown(f"""
-        <div class="total-card" style="border-color: {colores[i]};">
-            <h2 style="color: {colores[i]}; margin:0; font-size:40px;">{totales[i]}</h2>
+        <div class="total-card" style="border-color: {colores_jugadores[i]};">
+            <h2 style="color: {colores_jugadores[i]}; margin:0; font-size:40px;">{totales[i]}</h2>
             <div style="color: white; font-weight: bold; margin-top:5px;">{nombre_display}</div>
         </div>
         """, unsafe_allow_html=True)
